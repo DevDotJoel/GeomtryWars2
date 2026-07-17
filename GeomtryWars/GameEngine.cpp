@@ -20,7 +20,26 @@ void GameEngine::spawnPlayer()
 	player->cName = std::make_shared<CName>("Player1");
 	player->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 35.0f);
 }
+void GameEngine::spawnEnemy()
+{
+	auto enemy = m_entities.addEntity("enemy");
+	enemy->cTransform = std::make_shared<CTransform>(Vec2(400, 300), Vec2(0, 0), 0.0f, 15.0f);
+	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color::Blue, sf::Color::White);
+	enemy->cBBox = std::make_shared<CBBox>(32, 32);
+	enemy->cName = std::make_shared<CName>("Player1");
+	enemy->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 35.0f);
+}
 
+void GameEngine::sRotation()
+{
+	for (auto &e : m_entities.getEntities("player"))
+	{
+		if (!e->cTransform)
+			continue;
+
+		e->cTransform->angle += 60.0f * (1.0f / 60.0f);
+	}
+}
 void GameEngine::sUserInput()
 {
 	sf::Event event;
@@ -117,6 +136,7 @@ void GameEngine::sRender()
 		if (!e->cShape || !e->cTransform)
 			continue;
 		e->cShape->shape.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
+		e->cShape->shape.setRotation(e->cTransform->angle);
 		m_window.draw(e->cShape->shape);
 	}
 	m_window.display();
@@ -130,6 +150,7 @@ void GameEngine::run()
 	while (m_isRunning)
 	{
 		m_entities.update();
+		sRotation();
 		sUserInput();
 		sMovement();
 		sRender();

@@ -12,6 +12,8 @@ class GameEngine {
 	void sMovement();
 	void sRender();
 	void spawnPlayer();
+	void spawnEnemy();
+	void sRotation();
 	void spawnBullet(const Vec2& pos, const Vec2& dir, float speed);
 	void init();
 
