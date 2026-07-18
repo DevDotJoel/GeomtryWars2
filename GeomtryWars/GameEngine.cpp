@@ -16,7 +16,7 @@ void GameEngine::spawnPlayer()
 	auto player = m_entities.addEntity("player");
 	player->cTransform = std::make_shared<CTransform>(Vec2(400, 300), Vec2(0, 0), 0.0f, 15.0f, 60.0f);
 	player->cShape = std::make_shared<CShape>(32, 8, sf::Color::Blue, sf::Color::White);
-	player->cBBox = std::make_shared<CBBox>(32, 32);
+	player->cBBox = std::make_shared<CBBox>(64, 64);
 	player->cName = std::make_shared<CName>("Player1");
 	player->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 15.0f);
 }
@@ -103,7 +103,7 @@ void GameEngine::sMovement()
 			continue;
 		e->cTransform->pos += e->cTransform->velocity * e->cTransform->speed;
 		const auto win = m_window.getSize();
-		if (e->cBBox && e->tag()== "Player")
+		if (e->cBBox && e->tag()== "player")
 		{
 			const float r = e->cBBox->width / 2.0f;
 			if (e->cTransform->pos.x < r)
@@ -132,13 +132,12 @@ void GameEngine::sMovement()
 			if (e->cTransform->pos.y - r < 0)
 			{
 				e->cTransform->velocity.y = -e->cTransform->velocity.y;
-				e->cTransform->pos.y = r;              // snap to touching top
+				e->cTransform->pos.y = r;           
 			}
-			// BOTTOM wall (y = win.y)
 			else if (e->cTransform->pos.y + r > win.y)
 			{
 				e->cTransform->velocity.y = -e->cTransform->velocity.y;
-				e->cTransform->pos.y = win.y - r;      // snap to touching bottom
+				e->cTransform->pos.y = win.y - r;    
 			}
 		}
 		if (e->tag() == "bullet")
@@ -174,6 +173,7 @@ void GameEngine::sCollision()
 
 			if ((bulletLeft < enemyRight) && (bulletRight > enemyLeft) && (bulletTop < enemyBottom) && (bulletBottom > enemyTop))
 			{
+				spawnEnemy();
 				enemey->destroy();
 			}
 		}
