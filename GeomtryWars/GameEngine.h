@@ -20,6 +20,7 @@ class GameEngine {
 	void spawnBullet(const Vec2& pos, const Vec2& dir, float speed);
 	void init();
 	void sEnemies(float dt);
+	void sCollision();
 
 public:
 	GameEngine() = default;

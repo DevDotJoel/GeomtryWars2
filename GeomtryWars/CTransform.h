@@ -8,10 +8,10 @@ public:
 	Vec2 velocity = { 0,0 };
 	float angle = 0.0f;
 	float speed = 0.0f;
-
+	float rotSpeed = 60.0f;
 	CTransform(){}
-	CTransform(const Vec2& p, const Vec2& v, float a = 0.0f,float speedin=0.0f)
-		: pos(p), velocity(v), angle(a), speed(speedin) {
+	CTransform(const Vec2& p, const Vec2& v, float a = 0.0f,float speedin=0.0f,float rotationSpeedIn=0.0f)
+		: pos(p), velocity(v), angle(a), speed(speedin),rotSpeed(rotationSpeedIn) {
 	}
 
 };

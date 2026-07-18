@@ -14,17 +14,17 @@ void GameEngine::spawnPlayer()
 {
 
 	auto player = m_entities.addEntity("player");
-	player->cTransform = std::make_shared<CTransform>(Vec2(400, 300), Vec2(0, 0), 0.0f, 15.0f);
+	player->cTransform = std::make_shared<CTransform>(Vec2(400, 300), Vec2(0, 0), 0.0f, 15.0f, 60.0f);
 	player->cShape = std::make_shared<CShape>(32, 8, sf::Color::Blue, sf::Color::White);
 	player->cBBox = std::make_shared<CBBox>(32, 32);
 	player->cName = std::make_shared<CName>("Player1");
-	player->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 35.0f);
+	player->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 15.0f);
 }
 void GameEngine::spawnEnemy()
 {
 	auto enemy = m_entities.addEntity("enemy");
-	enemy->cTransform = std::make_shared<CTransform>(Vec2(640, 360), Vec2(1.0f,1.0f), 0.0f, 3.0f);
-	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color::Blue, sf::Color::White);
+	enemy->cTransform = std::make_shared<CTransform>(Vec2(640, 360), Vec2(1.0f,1.0f), 0.0f, 3.0f,0.0f);
+	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color(255, 255, 255), sf::Color::White);
 	enemy->cBBox = std::make_shared<CBBox>(32, 32);
 	enemy->cName = std::make_shared<CName>("Enemy");
 }
@@ -36,7 +36,7 @@ void GameEngine::sRotation()
 		if (!e->cTransform)
 			continue;
 
-		e->cTransform->angle += 60.0f * (1.0f / 60.0f);
+		e->cTransform->angle += e->cTransform->rotSpeed * (1.0f / 60.0f);
 	}
 }
 void GameEngine::sUserInput()
@@ -152,6 +152,33 @@ void GameEngine::sMovement()
 		}
 	}
 }
+void GameEngine::sCollision()
+{
+	for (auto& bullet : m_entities.getEntities("bullet"))
+	{
+
+		for (auto& enemey : m_entities.getEntities("enemy"))
+		{
+			float bulletRadius = bullet->cBBox->width / 2;
+			float enemyRadius = enemey->cBBox->width / 2;
+
+			float bulletLeft = bullet->cTransform->pos.x - bulletRadius;
+			float bulletRight= bullet->cTransform->pos.x + bulletRadius;
+			float bulletTop = bullet->cTransform->pos.y - bulletRadius;
+			float bulletBottom = bullet->cTransform->pos.y + bulletRadius;
+
+			float enemyLeft = enemey->cTransform->pos.x - enemyRadius;
+			float enemyRight = enemey->cTransform->pos.x + enemyRadius;
+			float enemyTop = enemey->cTransform->pos.y - enemyRadius;
+			float enemyBottom = enemey->cTransform->pos.y + enemyRadius;
+
+			if ((bulletLeft < enemyRight) && (bulletRight > enemyLeft) && (bulletTop < enemyBottom) && (bulletBottom > enemyTop))
+			{
+				enemey->destroy();
+			}
+		}
+	}
+}
 void GameEngine::sEnemies(float dt)
 {
 	m_enemySpawnTimer += dt;
@@ -187,6 +214,7 @@ void GameEngine::run()
 		sRotation();
 		sUserInput();
 		sMovement();
+		sCollision();
 		sEnemies(m_dt);
 		sRender();
 	}
