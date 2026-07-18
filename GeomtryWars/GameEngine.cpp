@@ -23,11 +23,10 @@ void GameEngine::spawnPlayer()
 void GameEngine::spawnEnemy()
 {
 	auto enemy = m_entities.addEntity("enemy");
-	enemy->cTransform = std::make_shared<CTransform>(Vec2(400, 300), Vec2(0, 0), 0.0f, 15.0f);
+	enemy->cTransform = std::make_shared<CTransform>(Vec2(640, 360), Vec2(1.0f,1.0f), 0.0f, 3.0f);
 	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color::Blue, sf::Color::White);
 	enemy->cBBox = std::make_shared<CBBox>(32, 32);
-	enemy->cName = std::make_shared<CName>("Player1");
-	enemy->cWeapon = std::make_shared<CWeapon>(0.1f, 0.1f, 35.0f);
+	enemy->cName = std::make_shared<CName>("Enemy");
 }
 
 void GameEngine::sRotation()
@@ -104,7 +103,7 @@ void GameEngine::sMovement()
 			continue;
 		e->cTransform->pos += e->cTransform->velocity * e->cTransform->speed;
 		const auto win = m_window.getSize();
-		if (e->cBBox && e->tag() != "bullet")
+		if (e->cBBox && e->tag()== "Player")
 		{
 			const float r = e->cBBox->width / 2.0f;
 			if (e->cTransform->pos.x < r)
@@ -115,6 +114,32 @@ void GameEngine::sMovement()
 				e->cTransform->pos.y = r;
 			if (e->cTransform->pos.y > win.y - r)
 				e->cTransform->pos.y = win.y - r;
+		}
+		if (e->cBBox && e->tag() == "enemy")
+		{
+			const float r = e->cBBox->width / 2.0f;
+			if (e->cTransform->pos.x - r < 0)
+			{
+				e->cTransform->velocity.x = -e->cTransform->velocity.x;
+				e->cTransform->pos.x = r;
+			}
+			else if (e->cTransform->pos.x + r > win.x)
+			{
+				e->cTransform->velocity.x = -e->cTransform->velocity.x;
+				e->cTransform->pos.x = win.x - r;
+			}
+
+			if (e->cTransform->pos.y - r < 0)
+			{
+				e->cTransform->velocity.y = -e->cTransform->velocity.y;
+				e->cTransform->pos.y = r;              // snap to touching top
+			}
+			// BOTTOM wall (y = win.y)
+			else if (e->cTransform->pos.y + r > win.y)
+			{
+				e->cTransform->velocity.y = -e->cTransform->velocity.y;
+				e->cTransform->pos.y = win.y - r;      // snap to touching bottom
+			}
 		}
 		if (e->tag() == "bullet")
 		{
@@ -127,7 +152,15 @@ void GameEngine::sMovement()
 		}
 	}
 }
-
+void GameEngine::sEnemies(float dt)
+{
+	m_enemySpawnTimer += dt;
+	if (m_enemySpawnTimer > m_enemySpawnInterval)
+	{
+		spawnEnemy();
+		m_enemySpawnTimer = 0.0f;
+	}
+}
 void GameEngine::sRender()
 {
 	m_window.clear(sf::Color::Black);
@@ -146,13 +179,15 @@ void GameEngine::run()
 {
 
 	init();
-
+	float m_dt = 0.0f;
 	while (m_isRunning)
 	{
+		m_dt = m_clock.restart().asSeconds();
 		m_entities.update();
 		sRotation();
 		sUserInput();
 		sMovement();
+		sEnemies(m_dt);
 		sRender();
 	}
 }
