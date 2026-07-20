@@ -1,6 +1,6 @@
 #include "GameEngine.h"
 #include <iostream>
-
+#include <random>
 void GameEngine::init()
 {
 
@@ -22,8 +22,59 @@ void GameEngine::spawnPlayer()
 }
 void GameEngine::spawnEnemy()
 {
+	const auto win = m_window.getSize();
+	const float r = 16.0f; //radius of each enemy
+
+	// random float for the positions
+	auto randf = [&](float lo, float hi)
+		{
+			std::uniform_real_distribution<float> d(lo, hi);
+			return d(m_rng);
+		};
+	//edges
+
+	std::uniform_int_distribution<int> edgeDist(0, 3);
+	int edge = edgeDist(m_rng);
+
+	Vec2 pos(0, 0);
+	Vec2 vel(0, 0);
+
+	switch (edge)
+	{
+	case 0:
+		pos.x = randf(r, (float)win.x - r);
+		pos.y = r;
+		vel.x = randf(-1.0f, 1.0f);
+		vel.y = 1.0f;
+		break;
+	case 1:
+		pos.x =(float)win.x - r;
+		pos.y = randf(r, (float)win.y - r);
+		vel.x =-1.0f ;
+		vel.y = randf(-1.0f, 1.0f);
+		break;
+	case 2:
+		pos.x =r;
+		pos.y = (float)win.y - r;
+		vel.x = 1.0f;
+		vel.y = randf(-1.0f, 1.0f);
+		break;
+	case 3:
+		pos.x = r;
+		pos.y = randf(r, (float)win.y - r);
+		vel.x = 1.0f;
+		vel.y = randf(-1.0f, 1.0f);
+		break;
+
+	default:
+		break;
+	}
+
+	if (vel.length() > 0)
+		vel=vel.normalized();
+
 	auto enemy = m_entities.addEntity("enemy");
-	enemy->cTransform = std::make_shared<CTransform>(Vec2(640, 360), Vec2(1.0f,1.0f), 0.0f, 3.0f,0.0f);
+	enemy->cTransform = std::make_shared<CTransform>(pos, vel, 0.0f, 3.0f, 0.0f);
 	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color(255, 255, 255), sf::Color::White);
 	enemy->cBBox = std::make_shared<CBBox>(32, 32);
 	enemy->cName = std::make_shared<CName>("Enemy");
@@ -103,7 +154,7 @@ void GameEngine::sMovement()
 			continue;
 		e->cTransform->pos += e->cTransform->velocity * e->cTransform->speed;
 		const auto win = m_window.getSize();
-		if (e->cBBox && e->tag()== "player")
+		if (e->cBBox && e->tag() == "player")
 		{
 			const float r = e->cBBox->width / 2.0f;
 			if (e->cTransform->pos.x < r)
@@ -132,12 +183,12 @@ void GameEngine::sMovement()
 			if (e->cTransform->pos.y - r < 0)
 			{
 				e->cTransform->velocity.y = -e->cTransform->velocity.y;
-				e->cTransform->pos.y = r;           
+				e->cTransform->pos.y = r;
 			}
 			else if (e->cTransform->pos.y + r > win.y)
 			{
 				e->cTransform->velocity.y = -e->cTransform->velocity.y;
-				e->cTransform->pos.y = win.y - r;    
+				e->cTransform->pos.y = win.y - r;
 			}
 		}
 		if (e->tag() == "bullet")
@@ -153,16 +204,16 @@ void GameEngine::sMovement()
 }
 void GameEngine::sCollision()
 {
-	for (auto& bullet : m_entities.getEntities("bullet"))
+	for (auto &bullet : m_entities.getEntities("bullet"))
 	{
 
-		for (auto& enemey : m_entities.getEntities("enemy"))
+		for (auto &enemey : m_entities.getEntities("enemy"))
 		{
 			float bulletRadius = bullet->cBBox->width / 2;
 			float enemyRadius = enemey->cBBox->width / 2;
 
 			float bulletLeft = bullet->cTransform->pos.x - bulletRadius;
-			float bulletRight= bullet->cTransform->pos.x + bulletRadius;
+			float bulletRight = bullet->cTransform->pos.x + bulletRadius;
 			float bulletTop = bullet->cTransform->pos.y - bulletRadius;
 			float bulletBottom = bullet->cTransform->pos.y + bulletRadius;
 
