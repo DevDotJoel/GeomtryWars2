@@ -5,7 +5,7 @@
 #include "CShape.h"
 #include "CBBox.h"
 #include "CWeapon.h"
-
+#include "CLifetime.h"
 
 class Entity {
 	friend class EntityManager;
@@ -19,7 +19,7 @@ public:
 	std::shared_ptr<CShape> cShape;
 	std::shared_ptr<CBBox> cBBox;
 	std::shared_ptr<CWeapon> cWeapon;
-	int                 m_lifeTime = 0;
+	std::shared_ptr<CLifetime> cLifetime;
 	void destroy() {
 		m_alive = false;
 	}

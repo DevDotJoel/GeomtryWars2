@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CBBox.h" />
+    <ClInclude Include="CLifetime.h" />
     <ClInclude Include="CName.h" />
     <ClInclude Include="CShape.h" />
     <ClInclude Include="CTransform.h" />

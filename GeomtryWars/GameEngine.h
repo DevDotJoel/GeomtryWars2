@@ -31,7 +31,7 @@ class GameEngine {
 	void init();
 	void sEnemies(float dt);
 	void sCollision();
-
+	void sLifetime(float dt);
 public:
 	GameEngine() = default;
 	void run();

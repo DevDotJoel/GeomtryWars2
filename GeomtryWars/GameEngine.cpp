@@ -182,10 +182,10 @@ void GameEngine::playerSpecialAttack(const Entity& player)
 	Vec2 bottomBulletPosition(player.cTransform->pos.x, player.cTransform->pos.y-16);
 	Vec2 bottomBulletDir(0, -1);
 
-	spawnBullet(rightBulletPosition, rightBulletDir, player.cWeapon->bulletSpeed);
-	spawnBullet(leftBulletPosition, leftBulletDir, player.cWeapon->bulletSpeed);
-	spawnBullet(topBulletPosition, topBulletDir, player.cWeapon->bulletSpeed);
-	spawnBullet(bottomBulletPosition, bottomBulletDir, player.cWeapon->bulletSpeed);
+	spawnBullet(rightBulletPosition, rightBulletDir, 5.0f);
+	spawnBullet(leftBulletPosition, leftBulletDir, 5.0f);
+	spawnBullet(topBulletPosition, topBulletDir, 5.0f);
+	spawnBullet(bottomBulletPosition, bottomBulletDir, 5.0f);
 	
 	
 	
@@ -197,6 +197,7 @@ void GameEngine::spawnBullet(const Vec2 &pos, const Vec2 &dir, float speed)
 	bullet->cTransform = std::make_shared<CTransform>(pos, dir, 0.0f, speed);
 	bullet->cShape = std::make_shared<CShape>(5, 8, sf::Color::Red, sf::Color::White);
 	bullet->cBBox = std::make_shared<CBBox>(10, 10);
+	bullet->cLifetime = std::make_shared<CLifetime>(1.0f);
 }
 
 void GameEngine::sMovement()
@@ -307,7 +308,21 @@ void GameEngine::sRender()
 	}
 	m_window.display();
 }
+void GameEngine::sLifetime(float dt)
+{
+	for (auto& e : m_entities.getEntities())
+	{
+		if (!e->cLifetime)
+			continue;
 
+		e->cLifetime->lifetime -= dt;
+
+		if (e->cLifetime->lifetime <= 0)
+		{
+			e->destroy();
+		}
+	}
+}
 void GameEngine::run()
 {
 
@@ -320,6 +335,7 @@ void GameEngine::run()
 		sRotation();
 		sUserInput(m_dt);
 		sMovement();
+		sLifetime(m_dt);
 		sCollision();
 		sEnemies(m_dt);
 		sRender();
