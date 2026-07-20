@@ -90,7 +90,7 @@ void GameEngine::sRotation()
 		e->cTransform->angle += e->cTransform->rotSpeed * (1.0f / 60.0f);
 	}
 }
-void GameEngine::sUserInput()
+void GameEngine::sUserInput(float dt)
 {
 	sf::Event event;
 	while (m_window.pollEvent(event))
@@ -104,7 +104,17 @@ void GameEngine::sUserInput()
 			sf::FloatRect visibleArea(0, 0, (float)event.size.width, (float)event.size.height);
 			m_window.setView(sf::View(visibleArea));
 		}
+		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+		{
+			if (m_specialCyclesLeft == 0 && !m_specialAttackStarted && m_currentCooldown <=0.0f)
+			{
+				m_specialCyclesLeft = m_maxSpecialAttackCycle;   // kick off N cycles
+				m_currentCooldown = 0.0f;
+				m_specialAttackStarted = true;
+			}
+		}
 	}
+	m_currentCooldown -= dt;
 	for (auto &e : m_entities.getEntities("player"))
 	{
 		if (!e->cTransform || !e->cWeapon)
@@ -124,7 +134,7 @@ void GameEngine::sUserInput()
 
 		e->cWeapon->cooldown -= 1.0f / 60.0f; // one frame at 60fps
 
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && e->cWeapon->cooldown <= 0)
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && e->cWeapon->cooldown <= 0 && !m_specialAttackStarted)
 		{
 			// direction = from player to mouse
 			sf::Vector2i mousePixel = sf::Mouse::getPosition(m_window);
@@ -136,9 +146,50 @@ void GameEngine::sUserInput()
 			spawnBullet(e->cTransform->pos, aimDir, e->cWeapon->bulletSpeed);
 			e->cWeapon->cooldown = e->cWeapon->fireRate;
 		}
+		if (m_specialAttackStarted && m_specialCyclesLeft > 0)
+		{			
+			if (e->cTransform && e->cWeapon && m_currentCooldown <= 0.0f) {
+				playerSpecialAttack(*e);                   // one 4-way burst
 
-		if(sf::)
+				m_specialCyclesLeft -= 1;
+				m_currentCooldown = m_specialCycleInterval;       // wait before next burst
+
+				if (m_specialCyclesLeft == 0) {
+					m_specialAttackStarted = false;
+					m_currentCooldown = m_specialCooldown;
+				}
+
+			}
+
+		}
+		
 	}
+
+}
+
+
+void GameEngine::playerSpecialAttack(const Entity& player)
+{
+	Vec2 rightBulletPosition(player.cTransform->pos.x + 16, player.cTransform->pos.y);
+	Vec2 rightBulletDir(1,0);
+
+	Vec2 leftBulletPosition(player.cTransform->pos.x - 16, player.cTransform->pos.y);
+	Vec2 leftBulletDir(-1, 0);
+
+	Vec2 topBulletPosition(player.cTransform->pos.x, player.cTransform->pos.y + 16);
+	Vec2 topBulletDir(0, 1);
+
+	Vec2 bottomBulletPosition(player.cTransform->pos.x, player.cTransform->pos.y-16);
+	Vec2 bottomBulletDir(0, -1);
+
+	spawnBullet(rightBulletPosition, rightBulletDir, player.cWeapon->bulletSpeed);
+	spawnBullet(leftBulletPosition, leftBulletDir, player.cWeapon->bulletSpeed);
+	spawnBullet(topBulletPosition, topBulletDir, player.cWeapon->bulletSpeed);
+	spawnBullet(bottomBulletPosition, bottomBulletDir, player.cWeapon->bulletSpeed);
+	
+	
+	
+
 }
 void GameEngine::spawnBullet(const Vec2 &pos, const Vec2 &dir, float speed)
 {
@@ -267,7 +318,7 @@ void GameEngine::run()
 		m_dt = m_clock.restart().asSeconds();
 		m_entities.update();
 		sRotation();
-		sUserInput();
+		sUserInput(m_dt);
 		sMovement();
 		sCollision();
 		sEnemies(m_dt);
