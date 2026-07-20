@@ -19,6 +19,7 @@ public:
 	std::shared_ptr<CShape> cShape;
 	std::shared_ptr<CBBox> cBBox;
 	std::shared_ptr<CWeapon> cWeapon;
+	int                 m_lifeTime = 0;
 	void destroy() {
 		m_alive = false;
 	}
