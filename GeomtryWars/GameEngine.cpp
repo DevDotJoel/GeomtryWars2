@@ -75,7 +75,7 @@ void GameEngine::spawnEnemy()
 
 	auto enemy = m_entities.addEntity("enemy");
 	enemy->cTransform = std::make_shared<CTransform>(pos, vel, 0.0f, 3.0f, 0.0f);
-	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color(255, 255, 255), sf::Color::White);
+	enemy->cShape = std::make_shared<CShape>(32, 8, sf::Color(randf(0,255), randf(0, 255), randf(0, 255)), sf::Color(randf(0, 255), randf(0, 255), randf(0, 255)));
 	enemy->cBBox = std::make_shared<CBBox>(32, 32);
 	enemy->cName = std::make_shared<CName>("Enemy");
 }
@@ -136,6 +136,8 @@ void GameEngine::sUserInput()
 			spawnBullet(e->cTransform->pos, aimDir, e->cWeapon->bulletSpeed);
 			e->cWeapon->cooldown = e->cWeapon->fireRate;
 		}
+
+		if(sf::)
 	}
 }
 void GameEngine::spawnBullet(const Vec2 &pos, const Vec2 &dir, float speed)
@@ -232,8 +234,10 @@ void GameEngine::sCollision()
 }
 void GameEngine::sEnemies(float dt)
 {
+	auto currentSize = m_entities.getEntities("enemy").size();
+	std::cout << currentSize;
 	m_enemySpawnTimer += dt;
-	if (m_enemySpawnTimer > m_enemySpawnInterval)
+	if (currentSize<m_maxEnemies  && m_enemySpawnTimer > m_enemySpawnInterval)
 	{
 		spawnEnemy();
 		m_enemySpawnTimer = 0.0f;

@@ -11,6 +11,7 @@ class GameEngine {
 	sf::Clock               m_clock;
 	float                   m_enemySpawnInterval = 2.0f;
 	float                   m_enemySpawnTimer = 0.0f;
+	int                     m_maxEnemies=15;
 	std::mt19937            m_rng{ std::random_device{}() };
 	void sUserInput();
 	void sMovement();
