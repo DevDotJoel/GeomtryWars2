@@ -113,56 +113,64 @@ void GameEngine::sUserInput(float dt)
 				m_specialAttackStarted = true;
 			}
 		}
-	}
-	m_currentCooldown -= dt;
-	for (auto &e : m_entities.getEntities("player"))
-	{
-		if (!e->cTransform || !e->cWeapon)
-			continue;
-		Vec2 dir(0, 0);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			dir.y -= 1;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			dir.y += 1;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			dir.x -= 1;
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			dir.x += 1;
-		if (dir.length() > 0)
-			dir = dir.normalized();
-		e->cTransform->velocity = dir;
-
-		e->cWeapon->cooldown -= 1.0f / 60.0f; // one frame at 60fps
-
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && e->cWeapon->cooldown <= 0 && !m_specialAttackStarted)
+		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::P)
 		{
-			// direction = from player to mouse
-			sf::Vector2i mousePixel = sf::Mouse::getPosition(m_window);
-			Vec2 mousePos((float)mousePixel.x, (float)mousePixel.y);
-			Vec2 aimDir = mousePos - e->cTransform->pos;
-			if (aimDir.length() > 0)
-				aimDir = aimDir.normalized();
-
-			spawnBullet(e->cTransform->pos, aimDir, e->cWeapon->bulletSpeed);
-			e->cWeapon->cooldown = e->cWeapon->fireRate;
+			m_pauseGame = !m_pauseGame;
 		}
-		if (m_specialAttackStarted && m_specialCyclesLeft > 0)
-		{			
-			if (e->cTransform && e->cWeapon && m_currentCooldown <= 0.0f) {
-				playerSpecialAttack(*e);                   // one 4-way burst
+	}
 
-				m_specialCyclesLeft -= 1;
-				m_currentCooldown = m_specialCycleInterval;       // wait before next burst
 
-				if (m_specialCyclesLeft == 0) {
-					m_specialAttackStarted = false;
-					m_currentCooldown = m_specialCooldown;
+	if (!m_pauseGame) {
+		m_currentCooldown -= dt;
+		for (auto& e : m_entities.getEntities("player"))
+		{
+			if (!e->cTransform || !e->cWeapon)
+				continue;
+			Vec2 dir(0, 0);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+				dir.y -= 1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+				dir.y += 1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+				dir.x -= 1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+				dir.x += 1;
+			if (dir.length() > 0)
+				dir = dir.normalized();
+			e->cTransform->velocity = dir;
+
+			e->cWeapon->cooldown -= 1.0f / 60.0f; // one frame at 60fps
+
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && e->cWeapon->cooldown <= 0 && !m_specialAttackStarted)
+			{
+				// direction = from player to mouse
+				sf::Vector2i mousePixel = sf::Mouse::getPosition(m_window);
+				Vec2 mousePos((float)mousePixel.x, (float)mousePixel.y);
+				Vec2 aimDir = mousePos - e->cTransform->pos;
+				if (aimDir.length() > 0)
+					aimDir = aimDir.normalized();
+
+				spawnBullet(e->cTransform->pos, aimDir, e->cWeapon->bulletSpeed);
+				e->cWeapon->cooldown = e->cWeapon->fireRate;
+			}
+			if (m_specialAttackStarted && m_specialCyclesLeft > 0)
+			{
+				if (e->cTransform && e->cWeapon && m_currentCooldown <= 0.0f) {
+					playerSpecialAttack(*e);                   // one 4-way burst
+
+					m_specialCyclesLeft -= 1;
+					m_currentCooldown = m_specialCycleInterval;       // wait before next burst
+
+					if (m_specialCyclesLeft == 0) {
+						m_specialAttackStarted = false;
+						m_currentCooldown = m_specialCooldown;
+					}
+
 				}
 
 			}
 
 		}
-		
 	}
 
 }
@@ -182,10 +190,10 @@ void GameEngine::playerSpecialAttack(const Entity& player)
 	Vec2 bottomBulletPosition(player.cTransform->pos.x, player.cTransform->pos.y-16);
 	Vec2 bottomBulletDir(0, -1);
 
-	spawnBullet(rightBulletPosition, rightBulletDir, 5.0f);
-	spawnBullet(leftBulletPosition, leftBulletDir, 5.0f);
-	spawnBullet(topBulletPosition, topBulletDir, 5.0f);
-	spawnBullet(bottomBulletPosition, bottomBulletDir, 5.0f);
+	spawnBullet(rightBulletPosition, rightBulletDir, 20.0f);
+	spawnBullet(leftBulletPosition, leftBulletDir, 20.0f);
+	spawnBullet(topBulletPosition, topBulletDir, 20.0f);
+	spawnBullet(bottomBulletPosition, bottomBulletDir, 20.0f);
 	
 	
 	
@@ -332,12 +340,17 @@ void GameEngine::run()
 	{
 		m_dt = m_clock.restart().asSeconds();
 		m_entities.update();
-		sRotation();
 		sUserInput(m_dt);
-		sMovement();
-		sLifetime(m_dt);
-		sCollision();
-		sEnemies(m_dt);
+		if (!m_pauseGame) {
+
+			sEnemies(m_dt);
+			sRotation();      // or fold into sMovement
+			sMovement();
+			sCollision();
+			sLifetime(m_dt);
+
+		}
+
 		sRender();
 	}
 }

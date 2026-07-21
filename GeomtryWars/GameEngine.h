@@ -20,6 +20,7 @@ class GameEngine {
 	bool                    m_specialAttackStarted = false;
 	bool                    m_canShoot = false;
 	std::mt19937            m_rng{ std::random_device{}() };
+	bool                    m_pauseGame = false;
 	void sUserInput(float dt);
 	void sMovement();
 	void sRender();
