@@ -33,6 +33,7 @@ class GameEngine {
 	void sEnemies(float dt);
 	void sCollision();
 	void sLifetime(float dt);
+	static bool circlesOverlap(const Entity& a, const Entity& b);
 public:
 	GameEngine() = default;
 	void run();

@@ -266,31 +266,34 @@ void GameEngine::sMovement()
 }
 void GameEngine::sCollision()
 {
-	for (auto &bullet : m_entities.getEntities("bullet"))
+	auto& bullets = m_entities.getEntities("bullet");
+	auto& enemies = m_entities.getEntities("enemy");
+
+	// --- bullet vs enemy ---
+	for (auto& bullet : bullets)
 	{
+		// (1) alive?  (2) has components?
+		if (!bullet->isAlive())            continue;
+		if (!bullet->cTransform || !bullet->cBBox) continue;
 
-		for (auto &enemey : m_entities.getEntities("enemy"))
+		for (auto& enemy : enemies)
 		{
-			float bulletRadius = bullet->cBBox->width / 2;
-			float enemyRadius = enemey->cBBox->width / 2;
+			if (!enemy->isAlive())             continue;
+			if (!enemy->cTransform || !enemy->cBBox) continue;
 
-			float bulletLeft = bullet->cTransform->pos.x - bulletRadius;
-			float bulletRight = bullet->cTransform->pos.x + bulletRadius;
-			float bulletTop = bullet->cTransform->pos.y - bulletRadius;
-			float bulletBottom = bullet->cTransform->pos.y + bulletRadius;
-
-			float enemyLeft = enemey->cTransform->pos.x - enemyRadius;
-			float enemyRight = enemey->cTransform->pos.x + enemyRadius;
-			float enemyTop = enemey->cTransform->pos.y - enemyRadius;
-			float enemyBottom = enemey->cTransform->pos.y + enemyRadius;
-
-			if ((bulletLeft < enemyRight) && (bulletRight > enemyLeft) && (bulletTop < enemyBottom) && (bulletBottom > enemyTop))
+			if (circlesOverlap(*bullet, *enemy))
 			{
-				spawnEnemy();
-				enemey->destroy();
+				enemy->destroy();
+				bullet->destroy();
 			}
 		}
 	}
+}
+ bool  GameEngine::circlesOverlap(const Entity& a, const Entity& b)
+{
+	Vec2  diff = a.cTransform->pos - b.cTransform->pos;
+	float r = a.cBBox->width * 0.5f + b.cBBox->width * 0.5f;
+	return diff.length() < r;
 }
 void GameEngine::sEnemies(float dt)
 {

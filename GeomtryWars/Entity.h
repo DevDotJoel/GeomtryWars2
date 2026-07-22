@@ -23,6 +23,9 @@ public:
 	void destroy() {
 		m_alive = false;
 	}
+	const bool isAlive() {
+		return m_alive;
+	}
 	const std::string& tag() { return m_tag; }
 private:
 	Entity(const std::string& tag,size_t id): m_tag(tag),m_id(id)
