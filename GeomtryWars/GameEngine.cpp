@@ -293,7 +293,7 @@ void GameEngine::sCollision()
 {
 	Vec2  diff = a.cTransform->pos - b.cTransform->pos;
 	float r = a.cBBox->width * 0.5f + b.cBBox->width * 0.5f;
-	return diff.length() < r;
+	return diff.length() <= r;
 }
 void GameEngine::sEnemies(float dt)
 {
